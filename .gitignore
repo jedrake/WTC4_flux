@@ -1,0 +1,16 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+#- exclude these folders
+/data
+/doc
+/output
+/presentations
+/wtctrendlogs
+
+#- exclude these specific files
+HIEv_token.txt
+WTC_*
+wtc4_flux.Rproj
