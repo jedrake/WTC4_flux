@@ -143,7 +143,7 @@ legend("topleft",legend=letters[2],cex=1.4,bty="n")
 #creates a scale of colors
 myColorRamp_raw <- function(colors, values) {
   #v <- (values - min(values))/diff(range(values))
-  v <- (values + 7)/13
+  v <- (values + 5)/11
   x <- colorRamp(colors)(v)
   rgb(x[,1], x[,2], x[,3], maxColorValue = 255)
 }
@@ -180,7 +180,7 @@ nhex_a <- h_a@ncells
 d_a <- getdiams(cells_a)
 #d[2] <- 0.005
 
-rampcolors <- c("blue","forestgreen","yellow","red")
+rampcolors <- c("black","blue","yellow","red")
 
 
 meanHexBinamb<-data.frame(mean=hexTapply(h_a, combodat_light$Tdiff, mean)) 
