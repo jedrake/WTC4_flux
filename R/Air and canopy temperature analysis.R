@@ -303,33 +303,74 @@ text(xloc+0.1,yloc,labels=values,cex=1.5)
 
 #----------------------------------------------------------------------------------------------------------------
 #- use energy balance. Does this make sense?
-dat <- expand.grid(PPFD=seq(100,1500,length.out=31),VPD=seq(0,6,length.out=31))
-sim  <- PhotosynEB(Tair=30,PPFD=dat$PPFD,VPD=dat$VPD,Wind=0.5,Wleaf=0.02,g1=2)
 
-dat$Tleaf <- sim$Tleaf
 
-dat$Tleafdiff <- with(dat,Tleaf-30)
+#creates a scale of colors
+myColorRamp <- function(colors, values) {
+  v <- (values - min(values))/diff(range(values))
+  #v <- (values - -3)/10 
+  x <- colorRamp(colors)(v)
+  rgb(x[,1], x[,2], x[,3], maxColorValue = 255)
+}
+
+
+#- simulate leaf energy balance across a range of VPDs and PPFDs
+dat <- expand.grid(PPFD=seq(0,1500,length.out=31),VPD=seq(0,2,length.out=31))
+sim  <- PhotosynEB(Tair=20,PPFD=dat$PPFD,VPD=dat$VPD,Wind=0.5,Wleaf=0.02,g1=4)
+dat$Tleaf <- sim$Tleaf2
+dat$Tleafdiff <- with(dat,Tleaf-20)
+
+#- create hexbins
 hall_sim <- hexbin(dat$PPFD, dat$VPD,xbins=20,IDs=TRUE)
+
+cells_a <- hcell2xy(hall_sim)
+hexd_a <- (h_a@xbnds[2] - h_a@xbnds[1])/h_a@xbins
+nhex_a <- h_a@ncells
+d_a <- getdiams(cells_a)
 
 #average values of points inside hexbins 
 meanHexBinall<-data.frame(mean=hexTapply(hall_sim, dat$Tleafdiff, mean)) 
-
 
 colsall <- myColorRamp(c("blue","green","yellow", "red"), meanHexBinall$mean)
 
 
 #-- plot 
 windows()
+par(mar=c(6,6,6,1))
 
-## setup coordinate system of the plot
-par(cex.lab=2,cex.axis=2)
-Pa <- plot(hall_sim, type="n",legend=FALSE,xlab="PPFD",ylab="VPD",main="")
+# Plot hex
+plot(cells_a, type='n',xlab="",ylab="",xaxt="n",yaxt="n",ylim=c(0,2))
+for(i in 1:nhex_a){
+  Hexagon(cells_a$x[i], cells_a$y[i], xdiam=d_a$xdiam*2, ydiam=d_a$ydiam,
+          border=NA,#border="grey",
+          col=colsall[i])
+}
+magaxis(side=c(1,2,3,4),las=1,labels=c(1,0,0,0),cex.axis=1.5)
+axis(side=2,at=c(0,1,2),labels=c(0,1,2),las=1,cex.axis=1.5,tick=F)
+title(xlab=expression(PPFD~(mu*mol~m^-2~s^-1)), ylab=expression(VPD~(kPa)),cex.lab=1.75,line=4,xpd=NA)
 
-##add hexagons (in the proper viewport):
-pushHexport(Pa$plot.vp)
+# add legend to top of the first two panels
+values <- c(-1,0,1,2,3,5)
+legcolors <- myColorRamp(c("blue","green","yellow", "red"), values)[1:6]
+xloc <- seq(0,1200,length.out=length(values))
+yloc <- rep(2.2,length(values))
+points(yloc~xloc,pch=18,cex=4,col=legcolors,xaxt="n",yaxt="n",xlab="",ylab="",xpd=NA)
+text(xloc,yloc+3,labels=values[1:6],cex=1.5,xpd=NA)
+text(xloc+100,yloc,labels=values,cex=1.5,xpd=NA)
+text(100,yloc+0.2,expression(T[leaf]-T[air]*", "(degree*C)),xpd=NA,cex=1.5)
 
-#plots hexbins based on colors of third column
-#grid.hexagons(hall, style= "lattice", border = gray(.9), pen = colsall,  minarea = 1, maxarea = 1)
 
-grid.hexagons(hall_sim, style= "lattice", border = gray(.9), pen = colsall,  minarea = 1, maxarea = 1)
+
+# 
+# ## setup coordinate system of the plot
+# par(cex.lab=2,cex.axis=2)
+# Pa <- plot(hall_sim, type="n",legend=FALSE,xlab="PPFD",ylab="VPD",main="")
+# 
+# ##add hexagons (in the proper viewport):
+# pushHexport(Pa$plot.vp)
+# 
+# #plots hexbins based on colors of third column
+# #grid.hexagons(hall, style= "lattice", border = gray(.9), pen = colsall,  minarea = 1, maxarea = 1)
+# 
+# grid.hexagons(hall_sim, style= "lattice", border = gray(.9), pen = colsall,  minarea = 1, maxarea = 1)
 #----------------------------------------------------------------------------------------------------------------

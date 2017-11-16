@@ -96,7 +96,8 @@ lines(predictions[[1]][,1] ~ seq(-2,45,length.out=101),
       lwd=2.5,col="black")
 legend("topleft",legend=letters[1],cex=1.4,bty="n")
 
-abline(5,0.75,lty=3,lwd=2,col="grey")
+#- slope of line from Michaletz?
+#abline(5,0.75,lty=3,lwd=2,col="grey")
 
 #- create a legend
 dc.leg <- densCols(rep(c(1,rep(20,20),rep(100,100),rep(1000,1000)),2),

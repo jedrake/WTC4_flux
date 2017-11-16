@@ -9,6 +9,28 @@ library(merTools)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
+#  D A T A      M A N I P U L A T I O N
+#-----------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
+
 #-----------------------------------------------------------------------------------------------------------
 #- merge the IR temperatures with the leaf temperatures
 
@@ -47,8 +69,6 @@ d3$Tleaf_mean <- rowMeans(d3[,c("LeafT_Avg.1.","LeafT_Avg.2.")],na.rm=T)
 
 
 
-
-
 #-----------------------------------------------------------------------------------------------------------
 #- Download the within chamber met data. Note that I upload these data monthly by extracting them from the
 #  trendlogs. This takes a long time and is a pain, or I would do it more frequently
@@ -61,7 +81,6 @@ metfiles <- list.files(path="data/fromHIEv/",pattern="WTCMET-MIN",full.names=T)
 metdat <- do.call(rbind,lapply(metfiles,read.csv))
 metdat$DateTime <- as.POSIXct(metdat$DateTime,format="%Y-%m-%d %T",tz="UTC")
 #-----------------------------------------------------------------------------------------------------------
-
 
 
 #-----------------------------------------------------------------------------------------------------------
@@ -104,7 +123,6 @@ d4$chamber <- factor(d4$chamber,levels=levels(metdat$chamber))
 
 
 #-----------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------
 #- read in the flux data (processed by the wtc4_flux_processing R project)
 fluxdat <- read.csv("c:/Repos/wtc4_flux_processing/output/WTC_TEMP-PARRA_WTCFLUX_20160228-20161123_L0.csv")
 fluxdat$DateTime <- as.POSIXct(fluxdat$DateTime,format="%Y-%m-%d %T",tz="UTC")
@@ -121,25 +139,12 @@ fluxdat.hr1 <- summaryBy(FluxCO2+FluxH2O+Tair_al+PAR+VPD~DateTime_hr+chamber+T_t
                          data=subset(fluxdat2,DoorCnt==0),FUN=mean,na.rm=T,keep.names=T)
 fluxdat.hr <- summaryBy(.~DateTime_hr+T_treatment,data=fluxdat.hr1,FUN=c(mean,standard.error),na.rm=T,keep.names=F)
 #-----------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-#-----------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------
 #- merge fluxdata.hr and IRT (fluxes and temperatures).
-#   This is for the "thermoregulation" manuscript
 
-
-head(fluxdat.hr1)
-head(IRT)
-#IRT$DateTime_hr <- nearestTimeStep(IRT$DateTime,nminutes=30,align="floor")
 d4$DateTime_hr <- nearestTimeStep(d4$DateTime,nminutes=30,align="floor")
-#IRT.hr1 <- summaryBy(TargTempC_Avg~DateTime_hr+chamber+T_treatment,
-#                         data=subset(IRT,DateTime>starttime & DateTime<endtime),FUN=mean,na.rm=T,keep.names=T)
 
 d4.hr1 <- data.frame(dplyr::summarize(dplyr::group_by(d4, DateTime_hr, chamber,T_treatment), 
                                        TargTempC_Avg=mean(TargTempC_Avg,na.rm=T),
@@ -151,44 +156,8 @@ d4.hr1 <- data.frame(dplyr::summarize(dplyr::group_by(d4, DateTime_hr, chamber,T
 combodat <- merge(fluxdat.hr1,d4.hr1,by=c("DateTime_hr","T_treatment","chamber"))
 combodat$week <- factor(week(combodat$DateTime_hr))
 combodat$weekfac <- factor(paste(combodat$chamber,combodat$week,sep="-"))
-
-
-
-#-----------------------------------------------------------------------------------------------------------
-#- plot all of the leaf temperature vs. air temperature data
-# windows(75,75);par(mar=c(7,7,1,2),mfrow=c(1,1))
-# 
-# greys.ramp <- colorRampPalette(c("lightgrey", "black"))
-# parlimit <- 500
-# #- create color densities
-# dc1 <- densCols(subset(combodat,PPFD_Avg>parlimit)$TargTempC_Avg,subset(combodat,PPFD_Avg>parlimit)$Tair_al,
-#                 colramp=greys.ramp)
-# 
-# #palette(c("blue","red"))
-# plot(TargTempC_Avg~Tair_al,data=subset(combodat,PPFD_Avg>parlimit),
-#      col=dc1,
-#      pch=1,xlim=c(0,50),ylim=c(0,50),legend=F,axes=F,
-#        xlab="",ylab="")
-# abline(0,1,lty=2)
-# abline(-5,1,lty=2)
-# abline(+5,1,lty=2)
-# abline(+10,1,lty=2)
-# textxy(X=0,Y=14,labs=expression("+10"~degree*C),cex=0.75)
-# textxy(X=0,Y=8,labs=expression("+5"~degree*C),cex=0.75)
-# textxy(X=0,Y=0,labs=expression("+0"~degree*C),cex=0.75)
-# textxy(X=4,Y=-0.5,labs=expression("-5"~degree*C),cex=0.75)
-# lmTall <- lm(TargTempC_Avg~Tair_al,data=subset(combodat,PPFD_Avg>parlimit))
-# abline(lmTall,lty=1,lwd=1.7)
-# legend("bottomright",paste("Slope = ",round(coef(lmTall)[[2]],2),sep=""),bty="n")
-# magaxis(side=c(1:4),labels=c(1,1,0,1),las=1,ratio=0.25)
-# title(xlab=expression(T[air]~(degree*C)),xpd=NA,cex.lab=2)
-# title(ylab=expression(Infrared~leaf~temperature~(T[l-IR]~","~~degree*C)),xpd=NA,cex.lab=2)
 #-----------------------------------------------------------------------------------------------------------
 
-
-
-
-#-----------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------
 
 #- calculate assimilation weighted leaf temperature
@@ -229,8 +198,26 @@ output_meanT$meanAirT <- do.call(rbind,meanAirT)
 output_meanT$meanLeafT <- do.call(rbind,meanLeafT)
 output_meanT$weightedMeanLeafT <- do.call(rbind,weightedMeanLeafT)
 output_meanT$VPD <- do.call(rbind,VPD)
+#-----------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
+#  E N D    O F    D A T A      M A N I P U L A T I O N
+#-----------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
 
 
+
+
+
+
+
+
+#-----------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
+# S T A T I S T I C A L       A N A L Y S I S
+#-----------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
 
 
 #-----------------------------------------------------------------------------------------------------------
@@ -290,11 +277,32 @@ visreg(lme2,xvar="meanAirT",by="T_treatment",overlay=T)
 visreg(lme2,xvar="T_treatment")
 
 #-----------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
+# E N D    O F    S T A T I S T I C A L       A N A L Y S I S
+#-----------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------
 
 
 
+
+
+
+
+
+
+
+
+
+
 #-----------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
+#    P L O T S
+#-----------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
+
+
 #-----------------------------------------------------------------------------------------------------------
 #- set up plot of Tleaf vs. Tair and assimilation-weighted Tleaf vs. Tair
 windows(100,75)
@@ -458,7 +466,7 @@ linkdf <- data.frame(chamber = levels(as.factor(hotTdat$chamber)),
 hotTdat <- merge(hotTdat,linkdf)
 hotTdat.m1 <- summaryBy(FluxCO2+PAR+TargTempC_Avg~DateTime_hr+T_treatment+chamber,FUN=mean,keep.names=T,
                         data=subset(hotTdat,HWtrt=="HW"))
-hotTdat.m <- summaryBy(FluxCO2+PAR+TargTempC_Avg~DateTime_hr,FUN=c(mean,se),data=hotTdat.m1)
+hotTdat.m <- summaryBy(FluxCO2+PAR+TargTempC_Avg~DateTime_hr+T_treatment,FUN=c(mean,se),data=hotTdat.m1)
 times <- subset(hotTdat.m,T_treatment=="ambient")$DateTime_hr # extract times for shadeNight
 
 
