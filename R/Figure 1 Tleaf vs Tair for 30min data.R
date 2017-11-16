@@ -98,7 +98,12 @@ legend("topleft",legend=letters[1],cex=1.4,bty="n")
 
 abline(5,0.75,lty=3,lwd=2,col="grey")
 
-
+#- create a legend
+dc.leg <- densCols(rep(c(1,rep(20,20),rep(100,100),rep(1000,1000)),2),
+                  colramp=greys.ramp)
+points(x=c(0,5,10,15.5),y=rep(49,4),col="darkgrey",bg=c(dc.leg[1],dc.leg[2],dc.leg[50],dc.leg[1000]),
+       pch=21,xpd=NA,cex=2)
+graphics::text(x=c(-6,-1,4,10,16)+2.5,y=rep(49,4),labels=c("#",1,10,100,1000),xpd=NA,cex=1.5)
 
 #---- create second plot for Temperature difference
 # Make a simple histogram
@@ -107,6 +112,12 @@ plot <- hist(dat2$Tdiff,xlab=expression(Leaf~to~air~temperature~difference~(T[L-
              main="",prob=T)
 box()
 legend("topleft",legend=letters[2],cex=1.4,bty="n")
+
+#- how often is Tleaf within 1 deg C of Tair?
+within1 <- nrow(subset(dat2,Tdiff >= -1 & Tdiff <= 1))
+nrow(dat2)
+within1/nrow(dat2)
+range(dat2$Tdiff,na.rm=T)
 
 # #- create color densities
 # xlims <- c(-5,45)
@@ -163,7 +174,7 @@ source("R/hexagon_plotting_functions.R")
 countmin <- 20
 
 #- number of bins in each direction
-nbins <- 50 # 10
+nbins <- 40 # 10
 
 
 
@@ -214,4 +225,4 @@ points(yloc~xloc,pch=18,cex=4,col=legcolors,xaxt="n",yaxt="n",xlab="",ylab="",xp
 text(xloc,yloc+3,labels=values[1:6],cex=1.5,xpd=NA)
 text(xloc+100,yloc,labels=values,cex=1.5,xpd=NA)
 text(100,yloc,expression(T[L-IR]-T[air]*", "(degree*C)),xpd=NA,cex=1.5)
-legend("topleft",legend=letters[3],cex=1.4,bty="n")
+legend("topright",legend=letters[3],cex=1.4,bty="n")
